@@ -1,24 +1,22 @@
 ﻿using GymMangement.DbContexts;
+using GymMangment.DAL.Reposatories.Classes;
+using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace GymMangement.Controllers
 {
     public class PlansController : Controller
     {
-        private readonly GymDbContext dbContext;
-        public PlansController()
+        private readonly IPlanReposatory planReposatory = new PlanReposatory();
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            dbContext = new GymDbContext();
-        }
-        public async Task<IActionResult> Index()
-        {
-            var plan = await dbContext.Plan.ToListAsync();
+            var plan = await planReposatory.GetAllAsync(ct:ct);
             return View(plan);
         }
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
-            var plan = await dbContext.Plan.FindAsync(id);
-            if(plan == null)
+            var plan = await planReposatory.GetByIdAsync(id, ct);
+            if (plan == null)
                 return RedirectToAction(nameof(Index));
             else
                return View(plan);
