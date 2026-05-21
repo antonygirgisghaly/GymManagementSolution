@@ -7,15 +7,19 @@ namespace GymMangement.Controllers
 {
     public class PlansController : Controller
     {
-        private readonly IPlanReposatory planReposatory = new PlanReposatory();
+        private readonly IPlanReposatory _planReposatory;
+        public PlansController(PlanReposatory plan)
+        {
+            _planReposatory = plan;
+        }
         public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var plan = await planReposatory.GetAllAsync(ct:ct);
+            var plan = await _planReposatory.GetAllAsync(ct:ct);
             return View(plan);
         }
         public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
-            var plan = await planReposatory.GetByIdAsync(id, ct);
+            var plan = await _planReposatory.GetByIdAsync(id, ct);
             if (plan == null)
                 return RedirectToAction(nameof(Index));
             else
