@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GymMangment.DAL.Models
 {
-    internal class Member : GymUser
+    public class Member : GymUser
     {
         public string? Photo { get; set; }
         //JoinDate = CreateAt 
