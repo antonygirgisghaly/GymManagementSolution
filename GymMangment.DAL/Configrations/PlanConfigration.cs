@@ -15,6 +15,8 @@ namespace GymMangement.Configrations
                    .HasMaxLength(200);
             builder.Property(p => p.Price)
                    .HasColumnType("decimal(18,2)");
+            builder.Property(p => p.CreatedAt)
+                   .HasDefaultValueSql("GETDATE()");
             builder.ToTable(tb => tb.HasCheckConstraint("PlanDuirationCheck", "DuirationDays between 1 and 365"));
                 
         }
