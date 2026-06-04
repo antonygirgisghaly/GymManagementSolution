@@ -9,5 +9,6 @@ namespace GymMangment.DAL.Models
     public class Catagory : BaseEntity
     {
         public string CatagoryName { get; set; }
+        public ICollection<Session> Sessions { get; set; }
     }
 }

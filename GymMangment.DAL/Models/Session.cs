@@ -12,5 +12,9 @@ namespace GymMangment.DAL.Models
         public int Capacity { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public Trainer Trainer { get; set; } = default!;
+        public int TrainerId { get; set; }
+        public Catagory Catagory { get; set; } = default!;
+        public int CatagoryId { get; set; }
     }
 }
