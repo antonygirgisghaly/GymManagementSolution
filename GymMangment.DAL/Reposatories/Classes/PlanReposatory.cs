@@ -13,9 +13,9 @@ namespace GymMangment.DAL.Reposatories.Classes
     public class PlanReposatory : IPlanReposatory
     {
         private readonly GymDbContext dbContext;
-        public PlanReposatory()
+        public PlanReposatory(GymDbContext dbContext)
         {
-           dbContext = new GymDbContext();
+            this.dbContext = dbContext;
         }
         public async Task<int> AddAsync(Plan plan, CancellationToken ct = default)
         {
