@@ -10,5 +10,8 @@ namespace GymMangment.DAL.Models
     {
         public string? Photo { get; set; }
         //JoinDate = CreateAt 
+        #region RelationShips
+        public HealthRecord HealthRecord { get; set; } = default!;
+        #endregion
     }
 }
