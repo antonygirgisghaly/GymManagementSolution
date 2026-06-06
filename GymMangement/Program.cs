@@ -1,4 +1,4 @@
-using GymMangement.DbContexts;
+using GymMangment.DAL.Data.DbContexts;
 using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.EntityFrameworkCore;

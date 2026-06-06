@@ -1,6 +1,4 @@
-﻿using GymMangment.DAL.Models;
-
-namespace GymMangement.Models
+﻿namespace GymMangment.DAL.Data.Models
 {
     public class Plan : BaseEntity
     {

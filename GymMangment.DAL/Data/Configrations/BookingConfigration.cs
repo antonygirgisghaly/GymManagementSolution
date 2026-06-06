@@ -1,4 +1,4 @@
-﻿using GymMangment.DAL.Models;
+﻿using GymMangment.DAL.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GymMangment.DAL.Configrations
+namespace GymMangment.DAL.Data.Configrations
 {
     public class BookingConfigration : IEntityTypeConfiguration<Booking>
     {

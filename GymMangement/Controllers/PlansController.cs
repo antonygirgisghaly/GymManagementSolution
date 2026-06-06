@@ -1,14 +1,14 @@
-﻿using GymMangement.DbContexts;
+﻿using GymMangment.DAL.Data.DbContexts;
 using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-namespace GymMangement.Controllers
+namespace GymMangment.Controllers
 {
     public class PlansController : Controller
     {
         private readonly IPlanReposatory _planReposatory;
-        public PlansController(PlanReposatory plan)
+        public PlansController(IPlanReposatory plan)
         {
             _planReposatory = plan;
         }
