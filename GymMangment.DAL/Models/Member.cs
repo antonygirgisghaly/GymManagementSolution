@@ -12,6 +12,7 @@ namespace GymMangment.DAL.Models
         //JoinDate = CreateAt 
         #region RelationShips
         public HealthRecord HealthRecord { get; set; } = default!;
+        public MemberShip MemberShip { get; set; }
         #endregion
     }
 }
