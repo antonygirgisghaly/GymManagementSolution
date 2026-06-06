@@ -1,4 +1,5 @@
 ﻿using GymMangment.DAL.Data.DbContexts;
+using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -7,8 +8,8 @@ namespace GymMangment.Controllers
 {
     public class PlansController : Controller
     {
-        private readonly IPlanReposatory _planReposatory;
-        public PlansController(IPlanReposatory plan)
+        private readonly IGenaricReposatory<Plan> _planReposatory;
+        public PlansController(IGenaricReposatory<Plan> plan)
         {
             _planReposatory = plan;
         }
