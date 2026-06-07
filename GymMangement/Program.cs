@@ -1,3 +1,5 @@
+using GymMangment.BLL.Services.Classes;
+using GymMangment.BLL.Services.Interfaces;
 using GymMangment.DAL.Data.DbContexts;
 using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
@@ -15,6 +17,7 @@ namespace GymMangement
             builder.Services.AddControllersWithViews();
             //builder.Services.AddScoped<IPlanReposatory, PlanReposatory>();
             builder.Services.AddScoped(typeof(IGenaricReposatory<>), typeof(GenericReposatory<>));
+            builder.Services.AddScoped<IMemberService, MemberService>();
             builder.Services.AddDbContext<GymDbContext>(options =>
                 {
                     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
