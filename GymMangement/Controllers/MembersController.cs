@@ -1,4 +1,5 @@
 ﻿using GymMangment.BLL.Services.Interfaces;
+using GymMangment.BLL.ViewModels.MemberViewModels;
 using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -29,9 +30,26 @@ namespace GymMangement.PL.Controllers
         #region Create
         //Get  BaseUrl/Members/Create/{id}
         //Form to create new member
+        [HttpGet]
+        public IActionResult Create() => View();
 
         //Post BaseUrl/Members/Create   {Member}
         //Handle form data to create new member
+        [HttpPost]
+        public async Task<IActionResult> CreateMember(CreateMemberViewModel member, CancellationToken ct)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(nameof(Create), member);
+            }
+            var createdMember = await _memberService.CreateMemberAsync(member, ct);
+            if (createdMember)
+                TempData["SuccessMessage"] = "Member created successfully.";
+            else
+                TempData["ErrorMessage"] = "Failed to create member. Please try again.";
+
+                return RedirectToAction(nameof(Index));
+        }
         #endregion
 
         #region Edit

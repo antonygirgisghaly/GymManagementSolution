@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,6 +28,11 @@ namespace GymMangment.DAL.Reposatories.Classes
             return await _dbContext.SaveChangesAsync();
         }
 
+        public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken ct = default)
+        {
+            return _set.AsNoTracking().AnyAsync(expression, ct);
+        }
+
         public async Task<int> DeleteAsync(TEntity entity)
         {
             _set.Remove(entity);
@@ -46,5 +52,6 @@ namespace GymMangment.DAL.Reposatories.Classes
             _set.Update(entity);
             return await _dbContext.SaveChangesAsync();
         }
+
     }
 }
