@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GymMangment.DAL.Data.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,12 @@ namespace GymMangment.BLL.ViewModels.MemberViewModels
         public string Name { get; set; }
         public string Phone { get; set; }
         public string Gender { get; set; }
+
+        //Member Details
+        public string? DateOfBirth { get; set; }
+        public string? Address { get; set; }
+        public string? PlanName { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
     }
 }

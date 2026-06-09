@@ -3,6 +3,7 @@ using GymMangment.BLL.ViewModels.MemberViewModels;
 using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.Build.Framework;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System;
 using System.Collections.Generic;
@@ -15,16 +16,19 @@ namespace GymMangment.BLL.Services.Classes
     public class MemberService : IMemberService
     {
         private IGenaricReposatory<Member> _memberService;
-
-        public MemberService(IGenaricReposatory<Member> memberService) 
+        private IGenaricReposatory<MemberShip> _memberShipService;
+        private IGenaricReposatory<Plan> _planService;
+        public MemberService(IGenaricReposatory<Member> memberService,IGenaricReposatory<MemberShip> memberShip,IGenaricReposatory<Plan> plan)
         {
             _memberService = memberService;
+            _memberShipService = memberShip;
+            _planService = plan;
         }
         public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
-            var members = await _memberService.GetAllAsync(ct : ct);
+            var members = await _memberService.GetAllAsync(ct: ct);
             var membermodels = members.Select(m => new MemberViewModel()
-            { 
+            {
                 Email = m.Email,
                 Phone = m.Phone,
                 Photo = m.Photo,
@@ -62,6 +66,30 @@ namespace GymMangment.BLL.Services.Classes
             };
             var result = await _memberService.AddAsync(membermodel);
             return result > 0;
+        }
+        public async Task<MemberViewModel?> GetMemberDetailsAsync(int id, CancellationToken ct = default)
+        {
+            var member = await _memberService.GetByIdAsync(id, ct);
+            if (member == null) return null;
+            var membermodel = new MemberViewModel()
+            {
+                Email = member.Email,
+                Phone = member.Phone,
+                Photo = member.Photo,
+                Gender = member.Gender.ToString(),
+                Name = member.Name,
+                DateOfBirth = member.DateOfBirth.ToShortDateString(),
+                Address = $"{member.Address.BuildingNumber}, {member.Address.Street}, {member.Address.City}",
+            };
+            var activemembership = await _memberShipService.FirstOrDefaultAsync(m => m.MemberId == id && m.EndDate > DateTime.Now);
+            if (activemembership is not null)
+            {
+            var plan = await _planService.GetByIdAsync(activemembership.PlanId);
+                membermodel.PlanName = plan.Name;
+                membermodel.StartDate = activemembership.CreatedAt.ToString();
+                membermodel.EndDate = activemembership.EndDate.ToString();
+            }
+            return membermodel;
         }
     }
 }
