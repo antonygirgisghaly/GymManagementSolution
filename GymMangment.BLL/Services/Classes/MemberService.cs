@@ -18,11 +18,14 @@ namespace GymMangment.BLL.Services.Classes
         private IGenaricReposatory<Member> _memberService;
         private IGenaricReposatory<MemberShip> _memberShipService;
         private IGenaricReposatory<Plan> _planService;
-        public MemberService(IGenaricReposatory<Member> memberService,IGenaricReposatory<MemberShip> memberShip,IGenaricReposatory<Plan> plan)
+        private IGenaricReposatory<HealthRecord> _healthRecordService;
+        public MemberService(IGenaricReposatory<Member> memberService,IGenaricReposatory<MemberShip> memberShip,
+            IGenaricReposatory<Plan> plan,IGenaricReposatory<HealthRecord> healthRecord)
         {
             _memberService = memberService;
             _memberShipService = memberShip;
             _planService = plan;
+            _healthRecordService = healthRecord;
         }
         public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
@@ -89,6 +92,20 @@ namespace GymMangment.BLL.Services.Classes
                 membermodel.StartDate = activemembership.CreatedAt.ToString();
                 membermodel.EndDate = activemembership.EndDate.ToString();
             }
+            return membermodel;
+        }
+
+        public async Task<HealthRecordViewModel?> GetHealthRecordDetailsAsync(int id, CancellationToken ct = default)
+        {
+            var member = await _healthRecordService.FirstOrDefaultAsync(m => m.Id == id, ct:ct);
+            if (member == null) return null;
+            var membermodel = new HealthRecordViewModel() 
+            {
+                BloodType = member.BloodType,
+                Weight = member.Weight,
+                Height = member.Height,
+                Note = member.Note
+            };
             return membermodel;
         }
     }

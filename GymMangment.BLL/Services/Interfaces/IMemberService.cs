@@ -12,5 +12,6 @@ namespace GymMangment.BLL.Services.Interfaces
         Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default);
         Task<bool> CreateMemberAsync(CreateMemberViewModel model, CancellationToken ct = default);
         Task<MemberViewModel?> GetMemberDetailsAsync(int id, CancellationToken ct = default);
+        Task<HealthRecordViewModel?> GetHealthRecordDetailsAsync(int id, CancellationToken ct = default);
     }
 }
