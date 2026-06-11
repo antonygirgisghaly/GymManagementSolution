@@ -19,13 +19,19 @@ namespace GymMangment.BLL.Services.Classes
         private IGenaricReposatory<MemberShip> _memberShipService;
         private IGenaricReposatory<Plan> _planService;
         private IGenaricReposatory<HealthRecord> _healthRecordService;
-        public MemberService(IGenaricReposatory<Member> memberService,IGenaricReposatory<MemberShip> memberShip,
-            IGenaricReposatory<Plan> plan,IGenaricReposatory<HealthRecord> healthRecord)
+        private IGenaricReposatory<Booking> _booking;
+
+        public MemberService(IGenaricReposatory<Member> memberService,
+                             IGenaricReposatory<MemberShip> memberShip,
+                             IGenaricReposatory<Plan> plan,
+                             IGenaricReposatory<HealthRecord> healthRecord,
+                             IGenaricReposatory<Booking> booking)
         {
             _memberService = memberService;
             _memberShipService = memberShip;
             _planService = plan;
             _healthRecordService = healthRecord;
+            _booking = booking;
         }
         public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
@@ -107,6 +113,48 @@ namespace GymMangment.BLL.Services.Classes
                 Note = member.Note
             };
             return membermodel;
+        }
+
+        public async Task<MemberToUpdateViewModel?> GetMemberToUpdateAsync(int id, CancellationToken ct = default)
+        {
+            var member = await _memberService.GetByIdAsync(id, ct: ct);
+            if (member == null) return null;
+            var membermodel = new MemberToUpdateViewModel()
+            {
+                Email = member.Email,
+                Phone = member.Phone,
+                Photo = member.Photo,
+                Name = member.Name,
+                BuildingNumber = member.Address.BuildingNumber,
+                City = member.Address.City,
+                Street = member.Address.Street
+            };
+            return membermodel;
+        }
+
+        public async Task<bool> UpdateMemberDetailsAsync(int id, MemberToUpdateViewModel member, CancellationToken ct = default)
+        {
+            var memberUpdate = await _memberService.GetByIdAsync(id, ct);
+            if(memberUpdate == null) return false;
+            var phoneExists = await _memberService.AnyAsync(m => m.Phone == member.Phone && m.Id != id, ct);
+            var emailExists = await _memberService.AnyAsync(m => m.Email == member.Email && m.Id != id, ct);
+            if (phoneExists || emailExists) return false;
+            memberUpdate.Email = member.Email;
+            memberUpdate.Phone = member.Phone;
+            memberUpdate.Address.BuildingNumber = member.BuildingNumber;
+            memberUpdate.Address.City = member.City;
+            memberUpdate.Address.Street = member.Street;
+            var result = await _memberService.UpdateAsync(memberUpdate);
+            return result > 0;
+        }
+        public async Task<bool> DeleteMemberAsync(int id, CancellationToken ct = default) 
+        {
+            var result = await _memberService.GetByIdAsync(id, ct);
+            if (result == null) return false;
+            var checkbooking = await _booking.AnyAsync(b => b.MemberId == id && b.Session.StartDate > DateTime.Now, ct);
+            if (checkbooking) return false;
+            var deleteResult = await _memberService.DeleteAsync(result);
+            return deleteResult > 0;
         }
     }
 }

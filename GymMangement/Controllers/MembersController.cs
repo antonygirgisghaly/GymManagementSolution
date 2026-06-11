@@ -74,17 +74,58 @@ namespace GymMangement.PL.Controllers
         #region Edit
         //Get  BaseUrl/Members/Edit/{id}
         //Form to edit existing member
-
+        [HttpGet]
+        public async Task<IActionResult> EditMember(int id, CancellationToken ct)
+        {
+            var memberToEdit = await _memberService.GetMemberToUpdateAsync(id, ct);
+            if (memberToEdit == null)
+            {
+                TempData["ErrorMessage"] = "Member not found.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(memberToEdit);
+        }
         //Post BaseUrl/Members/Edit   {Member}
         //Handle form data to edit existing member
+        [HttpPost]
+        public async Task<IActionResult> EditMember([FromRoute]int id, MemberToUpdateViewModel member, CancellationToken ct)
+        {
+            if (!ModelState.IsValid) return View(member);
+            var result = await _memberService.UpdateMemberDetailsAsync(id, member, ct);
+            if (result)
+                TempData["SuccessMessage"] = "Member updated successfully.";
+            else
+                TempData["ErrorMessage"] = "Failed to update member. Please try again.";
+            return RedirectToAction(nameof(Index));
+        }
         #endregion
 
         #region Delete
         //Get  BaseUrl/Members/Delete/{id}
         //Form to delete existing member
-
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
+        {
+            var member = await _memberService.GetMemberDetailsAsync(id, ct);
+            if(member == null)
+            {
+                TempData["ErrorMessage"] = "Member not found.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(member);
+        }
         //Post BaseUrl/Members/Delete   {Member}
         //Handle form data to delete existing member
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed([FromRoute]int id, CancellationToken ct)
+        {
+            var result = await _memberService.DeleteMemberAsync(id, ct);
+            if(result)
+                TempData["SuccessMessage"] = "Member deleted successfully.";
+            else
+                TempData["ErrorMessage"] = "Failed to delete member. Please try again.";
+            return RedirectToAction(nameof(Index));
+        }
         #endregion
 
     }
