@@ -124,7 +124,8 @@ namespace GymMangment.DAL.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Height")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("MemberId")
                         .HasColumnType("int");
@@ -137,7 +138,8 @@ namespace GymMangment.DAL.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Weight")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id");
 

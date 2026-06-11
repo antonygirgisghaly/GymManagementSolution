@@ -17,6 +17,8 @@ namespace GymMangment.DAL.Data.Configrations
                    .HasMaxLength(5);
             builder.Property(b => b.Note)
                    .HasMaxLength(500);
+            builder.Property(b => b.Weight).HasPrecision(5,2);
+            builder.Property(b => b.Height).HasPrecision(5,2);
         }
     }
 }
