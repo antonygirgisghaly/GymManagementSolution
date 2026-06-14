@@ -13,9 +13,9 @@ namespace GymMangment.DAL.Reposatories.Interfaces
     {
         public Task<TEntity> GetByIdAsync(int id, CancellationToken ct = default);
         public Task<IEnumerable<TEntity>> GetAllAsync(bool tracking = false, CancellationToken ct = default);
-        public Task<int> AddAsync(TEntity entity);
-        public Task<int> UpdateAsync(TEntity entity);
-        public Task<int> DeleteAsync(TEntity entity);
+        public void Add(TEntity entity);
+        public void Update(TEntity entity;
+        public void Delete(TEntity entity);
         public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken ct = default);
         public Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> expression,bool tracking = false, CancellationToken ct = default);
     }

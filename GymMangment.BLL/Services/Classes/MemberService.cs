@@ -15,27 +15,14 @@ namespace GymMangment.BLL.Services.Classes
 {
     public class MemberService : IMemberService
     {
-        private IGenaricReposatory<Member> _memberService;
-        private IGenaricReposatory<MemberShip> _memberShipService;
-        private IGenaricReposatory<Plan> _planService;
-        private IGenaricReposatory<HealthRecord> _healthRecordService;
-        private IGenaricReposatory<Booking> _booking;
-
-        public MemberService(IGenaricReposatory<Member> memberService,
-                             IGenaricReposatory<MemberShip> memberShip,
-                             IGenaricReposatory<Plan> plan,
-                             IGenaricReposatory<HealthRecord> healthRecord,
-                             IGenaricReposatory<Booking> booking)
+        private readonly IUnitOfWork _unitOfWork;
+        public MemberService(IUnitOfWork unitOfWork)
         {
-            _memberService = memberService;
-            _memberShipService = memberShip;
-            _planService = plan;
-            _healthRecordService = healthRecord;
-            _booking = booking;
+            _unitOfWork = unitOfWork;
         }
         public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
-            var members = await _memberService.GetAllAsync(ct: ct);
+            var members = await _unitOfWork.GetReposatory<Member>().GetAllAsync(ct: ct);
             var membermodels = members.Select(m => new MemberViewModel()
             {
                 Email = m.Email,
@@ -49,8 +36,8 @@ namespace GymMangment.BLL.Services.Classes
         }
         public async Task<bool> CreateMemberAsync(CreateMemberViewModel member, CancellationToken ct = default)
         {
-            var members = await _memberService.AnyAsync(m => m.Email == member.Email, ct);
-            var Phone = await _memberService.AnyAsync(m => m.Phone == member.Phone, ct);
+            var members = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Email == member.Email, ct);
+            var Phone = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Phone == member.Phone, ct);
             if (members || Phone) return false;
             var membermodel = new Member()
             {
@@ -73,12 +60,13 @@ namespace GymMangment.BLL.Services.Classes
                     Note = member.HealthRecordViewModel.Note
                 }
             };
-            var result = await _memberService.AddAsync(membermodel);
+            _unitOfWork.GetReposatory<Member>().Add(membermodel);
+            var result = await _unitOfWork.SaveChangesAsync(ct);
             return result > 0;
         }
         public async Task<MemberViewModel?> GetMemberDetailsAsync(int id, CancellationToken ct = default)
         {
-            var member = await _memberService.GetByIdAsync(id, ct);
+            var member = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct);
             if (member == null) return null;
             var membermodel = new MemberViewModel()
             {
@@ -90,10 +78,10 @@ namespace GymMangment.BLL.Services.Classes
                 DateOfBirth = member.DateOfBirth.ToShortDateString(),
                 Address = $"{member.Address.BuildingNumber}, {member.Address.Street}, {member.Address.City}",
             };
-            var activemembership = await _memberShipService.FirstOrDefaultAsync(m => m.MemberId == id && m.EndDate > DateTime.Now);
+            var activemembership = await _unitOfWork.GetReposatory<MemberShip>().FirstOrDefaultAsync(m => m.MemberId == id && m.EndDate > DateTime.Now);
             if (activemembership is not null)
             {
-            var plan = await _planService.GetByIdAsync(activemembership.PlanId);
+            var plan = await _unitOfWork.GetReposatory<Plan>().GetByIdAsync(activemembership.PlanId);
                 membermodel.PlanName = plan.Name;
                 membermodel.StartDate = activemembership.CreatedAt.ToString();
                 membermodel.EndDate = activemembership.EndDate.ToString();
@@ -103,7 +91,7 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<HealthRecordViewModel?> GetHealthRecordDetailsAsync(int id, CancellationToken ct = default)
         {
-            var member = await _healthRecordService.FirstOrDefaultAsync(m => m.Id == id, ct:ct);
+            var member = await _unitOfWork.GetReposatory<HealthRecord>().FirstOrDefaultAsync(m => m.Id == id, ct:ct);
             if (member == null) return null;
             var membermodel = new HealthRecordViewModel() 
             {
@@ -117,7 +105,7 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<MemberToUpdateViewModel?> GetMemberToUpdateAsync(int id, CancellationToken ct = default)
         {
-            var member = await _memberService.GetByIdAsync(id, ct: ct);
+            var member = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct: ct);
             if (member == null) return null;
             var membermodel = new MemberToUpdateViewModel()
             {
@@ -134,26 +122,28 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<bool> UpdateMemberDetailsAsync(int id, MemberToUpdateViewModel member, CancellationToken ct = default)
         {
-            var memberUpdate = await _memberService.GetByIdAsync(id, ct);
+            var memberUpdate = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct);
             if(memberUpdate == null) return false;
-            var phoneExists = await _memberService.AnyAsync(m => m.Phone == member.Phone && m.Id != id, ct);
-            var emailExists = await _memberService.AnyAsync(m => m.Email == member.Email && m.Id != id, ct);
+            var phoneExists = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Phone == member.Phone && m.Id != id, ct);
+            var emailExists = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Email == member.Email && m.Id != id, ct);
             if (phoneExists || emailExists) return false;
             memberUpdate.Email = member.Email;
             memberUpdate.Phone = member.Phone;
             memberUpdate.Address.BuildingNumber = member.BuildingNumber;
             memberUpdate.Address.City = member.City;
             memberUpdate.Address.Street = member.Street;
-            var result = await _memberService.UpdateAsync(memberUpdate);
+            _unitOfWork.GetReposatory<Member>().Update(memberUpdate);
+            var result = await _unitOfWork.SaveChangesAsync(ct);
             return result > 0;
         }
         public async Task<bool> DeleteMemberAsync(int id, CancellationToken ct = default) 
         {
-            var result = await _memberService.GetByIdAsync(id, ct);
+            var result = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct);
             if (result == null) return false;
-            var checkbooking = await _booking.AnyAsync(b => b.MemberId == id && b.Session.StartDate > DateTime.Now, ct);
+            var checkbooking = await _unitOfWork.GetReposatory<Booking>().AnyAsync(b => b.MemberId == id && b.Session.StartDate > DateTime.Now, ct);
             if (checkbooking) return false;
-            var deleteResult = await _memberService.DeleteAsync(result);
+            _unitOfWork.GetReposatory<Member>().Delete(result);
+            var deleteResult = await _unitOfWork.SaveChangesAsync(ct);
             return deleteResult > 0;
         }
     }

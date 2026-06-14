@@ -13,18 +13,17 @@ namespace GymMangment.BLL.Services.Classes
 {
     public class TrainerService : ITrainerService
     {
-        private readonly IGenaricReposatory<Trainer> _trainerReposatory;
-        private readonly IGenaricReposatory<Session> _sessionReposatory;
-        public TrainerService(IGenaricReposatory<Trainer> trainerReposatory,IGenaricReposatory<Session> sessionReposatoriy)
+        private readonly IUnitOfWork _unitOfWork;
+
+        public TrainerService(IUnitOfWork unitOfWork)
         {
-            _trainerReposatory = trainerReposatory;
-            _sessionReposatory = sessionReposatoriy;
+            _unitOfWork = unitOfWork;
         }
 
 
         public async Task<IEnumerable<TrainerViewModel>> GetAllTrainersAsync(CancellationToken ct = default)
         {
-            var trainers = await _trainerReposatory.GetAllAsync(ct : ct);
+            var trainers = await _unitOfWork.GetReposatory<Trainer>().GetAllAsync(ct : ct);
             var trainerViewModels = trainers.Select(t => new TrainerViewModel
             {
                 Id = t.Id,
@@ -40,8 +39,8 @@ namespace GymMangment.BLL.Services.Classes
         }
         public async Task<bool> AddTrainerAsync(CreateTrainerViewModel trainer, CancellationToken ct = default)
         {
-            var members = await _trainerReposatory.AnyAsync(m => m.Email == trainer.Email, ct);
-            var Phone = await _trainerReposatory.AnyAsync(m => m.Phone == trainer.Phone, ct);
+            var members = await _unitOfWork.GetReposatory<Trainer>().AnyAsync(m => m.Email == trainer.Email, ct);
+            var Phone = await _unitOfWork.GetReposatory<Trainer>().AnyAsync(m => m.Phone == trainer.Phone, ct);
             if (members || Phone) return false;
             var trainerViewModel = new Trainer
             {
@@ -56,13 +55,14 @@ namespace GymMangment.BLL.Services.Classes
                     Street = trainer.Street
                 },
             };
-               var result = await _trainerReposatory.AddAsync(trainerViewModel);
+            _unitOfWork.GetReposatory<Trainer>().Add(trainerViewModel);
+            var result = await _unitOfWork.SaveChangesAsync();
             return result > 0;
         }
 
         public async Task<TrainerViewModel?> GetTrainerByIdAsync(int id, CancellationToken ct = default)
         {
-            var trainer = await _trainerReposatory.GetByIdAsync(id, ct);
+            var trainer = await _unitOfWork.GetReposatory<Trainer>().GetByIdAsync(id, ct);
             if (trainer == null) return null;
             return new TrainerViewModel
             {
@@ -80,7 +80,7 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<EditTrainerViewModel> GetTrainerToUpdateAsync(int id, CancellationToken ct = default)
         {
-            var trainer = await _trainerReposatory.GetByIdAsync(id, ct);
+            var trainer = await _unitOfWork.GetReposatory<Trainer>().GetByIdAsync(id, ct);
             if (trainer == null) return null;
             var editTrainerViewModel = new EditTrainerViewModel
             {
@@ -98,8 +98,8 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<bool> UpdateTrainerAsync(int id, EditTrainerViewModel trainer, CancellationToken ct = default)
         {
-            var phone = await _trainerReposatory.AnyAsync(m => m.Phone == trainer.Phone && m.Id != id, ct);
-            var email = await _trainerReposatory.AnyAsync(m => m.Email == trainer.Email && m.Id != id, ct);
+            var phone = await _unitOfWork.GetReposatory<Trainer>().AnyAsync(m => m.Phone == trainer.Phone && m.Id != id, ct);
+            var email = await _unitOfWork.GetReposatory<Trainer>().AnyAsync(m => m.Email == trainer.Email && m.Id != id, ct);
             if (phone|| email) return false;
             var trainerToUpdate = new Trainer
             {
@@ -116,17 +116,19 @@ namespace GymMangment.BLL.Services.Classes
                     Street = trainer.Street
                 }
             };
-            var result = await _trainerReposatory.UpdateAsync(trainerToUpdate);
+            _unitOfWork.GetReposatory<Trainer>().Update(trainerToUpdate);
+            var result = await _unitOfWork.SaveChangesAsync();
             return result > 0;
         }
 
         public async Task<bool> DeleteTrainerAsync(int id, CancellationToken ct = default)
         {
-            var result = await _trainerReposatory.GetByIdAsync(id,ct);
+            var result = await _unitOfWork.GetReposatory<Trainer>().GetByIdAsync(id,ct);
             if (result == null) return false;
-            var trainer = await _sessionReposatory.AnyAsync(b => b.TrainerId == id && b.StartDate > DateTime.Now,ct);
+            var trainer = await _unitOfWork.GetReposatory<Session>().AnyAsync(b => b.TrainerId == id && b.StartDate > DateTime.Now,ct);
             if(trainer) return false;
-            var final = await _trainerReposatory.DeleteAsync(result);
+            _unitOfWork.GetReposatory<Trainer>().Delete(result);
+            var final = await _unitOfWork.SaveChangesAsync();
             return final > 0;
         }
     }

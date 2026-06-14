@@ -1,30 +1,28 @@
 ﻿using GymMangment.BLL.Services.Interfaces;
 using GymMangment.BLL.ViewModels.PlanViewModel;
 using GymMangment.DAL.Data.Models;
+using GymMangment.DAL.Data.Models;
+using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GymMangment.DAL.Data.Models;
 namespace GymMangment.BLL.Services.Classes
 {
     public class PlanService : IPlanService
     {
-        private IGenaricReposatory<Plan> _planReposatory;
-        private IGenaricReposatory<MemberShip> _membershipReposatory;
-
-        public PlanService(IGenaricReposatory<Plan> plan, IGenaricReposatory<MemberShip> membership)
+        private readonly IUnitOfWork _unitOfOfWork;
+        public PlanService(IUnitOfWork unitOfWork)
         {
-            _planReposatory = plan;
-            _membershipReposatory = membership;
+            _unitOfOfWork = unitOfWork;
         }
 
 
         public async Task<PlanViewModel?> GetByIdAsync(int id, CancellationToken ct)
         {
-            var result = await _planReposatory.GetByIdAsync(id, ct);
+            var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null) return null;
             var plan = new PlanViewModel
             {
@@ -40,7 +38,7 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<EditPlanViewModel?> GetByIdEditPlanViewModelAsync(int id, CancellationToken ct)
         {
-            var result = await _planReposatory.GetByIdAsync(id, ct);
+            var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null) return null;
             var plan = new EditPlanViewModel
             {
@@ -54,7 +52,7 @@ namespace GymMangment.BLL.Services.Classes
 
         public async Task<IEnumerable<PlanViewModel>> GetPlanDetailsAsync(CancellationToken ct)
         {
-            var result = await _planReposatory.GetAllAsync(ct: ct);
+            var result = await _unitOfOfWork.GetReposatory<Plan>().GetAllAsync(ct: ct);
             var plan = result.Select( p => new PlanViewModel
             {
                 Id = p.Id,
@@ -68,9 +66,9 @@ namespace GymMangment.BLL.Services.Classes
         }
         public async Task<bool> EditAsync(int id, EditPlanViewModel model, CancellationToken ct)
         {
-            var result = await _planReposatory.GetByIdAsync(id, ct);
+            var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null || !result.IsActive) return false;
-            var activememberships = await _membershipReposatory.AnyAsync(p => p.Id == id && p.EndDate > DateTime.Now, ct);
+            var activememberships = await _unitOfOfWork.GetReposatory<MemberShip>().AnyAsync(p => p.Id == id && p.EndDate > DateTime.Now, ct);
             if (activememberships) return false;
             else
             {
@@ -78,17 +76,19 @@ namespace GymMangment.BLL.Services.Classes
                 result.DuirationDays = model.DurationDays;
                 result.Price = model.Price;
                 result.Description = model.Description;
-                var update = await _planReposatory.UpdateAsync(result);
+                _unitOfOfWork.GetReposatory<Plan>().Update(result);
+                var update = await _unitOfOfWork.SaveChangesAsync(ct);
                 return update > 0;
             }
         }
 
         public async Task<bool> Toogle(int id, CancellationToken ct)
         {
-            var result = await _planReposatory.GetByIdAsync(id, ct);
+            var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null) return false;
             result.IsActive = !result.IsActive;
-            var update = await _planReposatory.UpdateAsync(result);
+            _unitOfOfWork.GetReposatory<Plan>().Update(result);
+            var update = await _unitOfOfWork.SaveChangesAsync(ct);
             return update > 0;
         }
     }
