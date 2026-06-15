@@ -21,6 +21,8 @@ namespace GymMangement
             builder.Services.AddScoped<IPlanService, PlanService>();
             builder.Services.AddScoped<ITrainerService, TrainerService>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<ISessionReposatory, SessionReposatory>();
+            builder.Services.AddScoped<ISessionService, SessionService>();
             builder.Services.AddDbContext<GymDbContext>(options =>
                 {
                     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));

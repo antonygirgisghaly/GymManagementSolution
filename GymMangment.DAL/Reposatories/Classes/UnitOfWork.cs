@@ -13,10 +13,14 @@ namespace GymMangment.DAL.Reposatories.Classes
     {
         private readonly GymDbContext _dbContext;
         private readonly Dictionary<string, object> _repositories = [];
-        public UnitOfWork(GymDbContext dbContext) 
+        public ISessionReposatory SessionReposatory { get; }
+        public UnitOfWork(GymDbContext dbContext,ISessionReposatory session) 
         {
             _dbContext = dbContext;
+            SessionReposatory = session;
         }
+
+
         public IGenaricReposatory<TEntity> GetReposatory<TEntity>() where TEntity : BaseEntity, new()
         {
             var typename = typeof(TEntity).Name;
