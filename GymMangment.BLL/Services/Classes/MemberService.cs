@@ -1,8 +1,10 @@
-﻿using GymMangment.BLL.Services.Interfaces;
+﻿using AutoMapper;
+using GymMangment.BLL.Services.Interfaces;
 using GymMangment.BLL.ViewModels.MemberViewModels;
 using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Interfaces;
 using Microsoft.Build.Framework;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using System;
@@ -16,22 +18,18 @@ namespace GymMangment.BLL.Services.Classes
     public class MemberService : IMemberService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public MemberService(IUnitOfWork unitOfWork)
+
+        private readonly IMapper _mapper; 
+
+        public MemberService(IUnitOfWork unitOfWork,IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
         public async Task<IEnumerable<MemberViewModel>> GetAllMembersAsync(CancellationToken ct = default)
         {
             var members = await _unitOfWork.GetReposatory<Member>().GetAllAsync(ct: ct);
-            var membermodels = members.Select(m => new MemberViewModel()
-            {
-                Email = m.Email,
-                Phone = m.Phone,
-                Photo = m.Photo,
-                Gender = m.Gender.ToString(),
-                Name = m.Name,
-                Id = m.Id
-            });
+            var membermodels = _mapper.Map<IEnumerable<Member>, IEnumerable<MemberViewModel>>(members);
             return membermodels;
         }
         public async Task<bool> CreateMemberAsync(CreateMemberViewModel member, CancellationToken ct = default)
@@ -39,27 +37,7 @@ namespace GymMangment.BLL.Services.Classes
             var members = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Email == member.Email, ct);
             var Phone = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Phone == member.Phone, ct);
             if (members || Phone) return false;
-            var membermodel = new Member()
-            {
-                Email = member.Email,
-                Phone = member.Phone,
-                Name = member.Name,
-                Gender = member.Gender,
-                DateOfBirth = member.DateOfBirth,
-                Address = new Address()
-                {
-                    BuildingNumber = member.BuildingNumber,
-                    City = member.City,
-                    Street = member.Street
-                },
-                HealthRecord = new HealthRecord()
-                {
-                    BloodType = member.HealthRecordViewModel.BloodType,
-                    Weight = member.HealthRecordViewModel.Weight,
-                    Height = member.HealthRecordViewModel.Height,
-                    Note = member.HealthRecordViewModel.Note
-                }
-            };
+            var membermodel = _mapper.Map<Member>(member );
             _unitOfWork.GetReposatory<Member>().Add(membermodel);
             var result = await _unitOfWork.SaveChangesAsync(ct);
             return result > 0;
@@ -68,16 +46,7 @@ namespace GymMangment.BLL.Services.Classes
         {
             var member = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct);
             if (member == null) return null;
-            var membermodel = new MemberViewModel()
-            {
-                Email = member.Email,
-                Phone = member.Phone,
-                Photo = member.Photo,
-                Gender = member.Gender.ToString(),
-                Name = member.Name,
-                DateOfBirth = member.DateOfBirth.ToShortDateString(),
-                Address = $"{member.Address.BuildingNumber}, {member.Address.Street}, {member.Address.City}",
-            };
+            var membermodel = _mapper.Map<Member, MemberViewModel>(member);
             var activemembership = await _unitOfWork.GetReposatory<MemberShip>().FirstOrDefaultAsync(m => m.MemberId == id && m.EndDate > DateTime.Now);
             if (activemembership is not null)
             {
@@ -93,13 +62,7 @@ namespace GymMangment.BLL.Services.Classes
         {
             var member = await _unitOfWork.GetReposatory<HealthRecord>().FirstOrDefaultAsync(m => m.Id == id, ct:ct);
             if (member == null) return null;
-            var membermodel = new HealthRecordViewModel() 
-            {
-                BloodType = member.BloodType,
-                Weight = member.Weight,
-                Height = member.Height,
-                Note = member.Note
-            };
+            var membermodel = _mapper.Map<HealthRecord, HealthRecordViewModel>(member);
             return membermodel;
         }
 
@@ -107,16 +70,7 @@ namespace GymMangment.BLL.Services.Classes
         {
             var member = await _unitOfWork.GetReposatory<Member>().GetByIdAsync(id, ct: ct);
             if (member == null) return null;
-            var membermodel = new MemberToUpdateViewModel()
-            {
-                Email = member.Email,
-                Phone = member.Phone,
-                Photo = member.Photo,
-                Name = member.Name,
-                BuildingNumber = member.Address.BuildingNumber,
-                City = member.Address.City,
-                Street = member.Address.Street
-            };
+            var membermodel = _mapper.Map<Member, MemberToUpdateViewModel>(member);
             return membermodel;
         }
 
@@ -127,11 +81,8 @@ namespace GymMangment.BLL.Services.Classes
             var phoneExists = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Phone == member.Phone && m.Id != id, ct);
             var emailExists = await _unitOfWork.GetReposatory<Member>().AnyAsync(m => m.Email == member.Email && m.Id != id, ct);
             if (phoneExists || emailExists) return false;
-            memberUpdate.Email = member.Email;
-            memberUpdate.Phone = member.Phone;
-            memberUpdate.Address.BuildingNumber = member.BuildingNumber;
-            memberUpdate.Address.City = member.City;
-            memberUpdate.Address.Street = member.Street;
+            _mapper.Map(member,memberUpdate);
+            memberUpdate.UpdatedAt = DateTime.Now;
             _unitOfWork.GetReposatory<Member>().Update(memberUpdate);
             var result = await _unitOfWork.SaveChangesAsync(ct);
             return result > 0;

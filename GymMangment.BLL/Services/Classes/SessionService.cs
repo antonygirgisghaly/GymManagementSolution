@@ -1,4 +1,5 @@
-﻿using GymMangment.BLL.Services.Interfaces;
+﻿using AutoMapper;
+using GymMangment.BLL.Services.Interfaces;
 using GymMangment.BLL.ViewModels.SessionViewModel;
 using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Interfaces;
@@ -13,9 +14,12 @@ namespace GymMangment.BLL.Services.Classes
     public class SessionService : ISessionService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public SessionService(IUnitOfWork unitOfWork) 
+        private readonly IMapper _mapper;
+
+        public SessionService(IUnitOfWork unitOfWork,IMapper mapper) 
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
 
@@ -23,16 +27,7 @@ namespace GymMangment.BLL.Services.Classes
         {
             var result = await _unitOfWork.SessionReposatory.GetAllSessionsWithTrainerandCatagoryAsync(ct);
             if (result == null || !result.Any()) return null;
-            var mappedSessions = result.Select(b => new SessionViewModel()
-            {
-                Id = b.Id,
-                CategoryName = b.Catagory.CatagoryName,
-                Capacity = b.Capacity,
-                TrainerName = b.Trainer.Name,
-                Description = b.Description,
-                EndDate = b.EndDate,
-                StartDate = b.StartDate,
-            });
+            var mappedSessions = _mapper.Map<IEnumerable<Session>,IEnumerable<SessionViewModel>>(result);
             foreach (var session in mappedSessions) 
             {
               session.AvailableSlots = session.Capacity -  await _unitOfWork.SessionReposatory.GetCountOfBookedSlotAsync(session.Id,ct);

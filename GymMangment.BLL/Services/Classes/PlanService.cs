@@ -1,4 +1,5 @@
-﻿using GymMangment.BLL.Services.Interfaces;
+﻿using AutoMapper;
+using GymMangment.BLL.Services.Interfaces;
 using GymMangment.BLL.ViewModels.PlanViewModel;
 using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Data.Models;
@@ -14,9 +15,12 @@ namespace GymMangment.BLL.Services.Classes
     public class PlanService : IPlanService
     {
         private readonly IUnitOfWork _unitOfOfWork;
-        public PlanService(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+
+        public PlanService(IUnitOfWork unitOfWork,IMapper mapper)
         {
             _unitOfOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
 
@@ -24,15 +28,7 @@ namespace GymMangment.BLL.Services.Classes
         {
             var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null) return null;
-            var plan = new PlanViewModel
-            {
-                Id = result.Id,
-                Name = result.Name,
-                IsActive = result.IsActive,
-                Description = result.Description,
-                DuirationDays = result.DuirationDays,
-                Price = result.Price
-            };
+            var plan = _mapper.Map<Plan, PlanViewModel>(result);
             return plan;
         }
 
@@ -40,28 +36,14 @@ namespace GymMangment.BLL.Services.Classes
         {
             var result = await _unitOfOfWork.GetReposatory<Plan>().GetByIdAsync(id, ct);
             if (result == null) return null;
-            var plan = new EditPlanViewModel
-            {
-                PlanName = result.Name,
-                DurationDays = result.DuirationDays,
-                Description = result.Description,
-                Price = result.Price,
-            };
+            var plan = _mapper.Map<Plan, EditPlanViewModel>(result);
             return plan;
         }
 
         public async Task<IEnumerable<PlanViewModel>> GetPlanDetailsAsync(CancellationToken ct)
         {
             var result = await _unitOfOfWork.GetReposatory<Plan>().GetAllAsync(ct: ct);
-            var plan = result.Select( p => new PlanViewModel
-            {
-                Id = p.Id,
-                Name = p.Name,
-                IsActive = p.IsActive,
-                Description = p.Description,
-                DuirationDays = p.DuirationDays,
-                Price = p.Price
-            });
+            var plan = _mapper.Map<IEnumerable<Plan>, IEnumerable<PlanViewModel>>(result);
             return plan;
         }
         public async Task<bool> EditAsync(int id, EditPlanViewModel model, CancellationToken ct)
@@ -72,10 +54,7 @@ namespace GymMangment.BLL.Services.Classes
             if (activememberships) return false;
             else
             {
-                result.Name = model.PlanName;
-                result.DuirationDays = model.DurationDays;
-                result.Price = model.Price;
-                result.Description = model.Description;
+                _mapper.Map(model,result);
                 _unitOfOfWork.GetReposatory<Plan>().Update(result);
                 var update = await _unitOfOfWork.SaveChangesAsync(ct);
                 return update > 0;
