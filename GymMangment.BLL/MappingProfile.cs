@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GymMangment.BLL.ViewModels.MemberViewModels;
 using GymMangment.BLL.ViewModels.PlanViewModel;
+using GymMangment.BLL.ViewModels.SessionViewModel;
 using GymMangment.DAL.Data.Models;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,16 @@ namespace GymMangment.BLL
     {
         public MappingProfile()
         {
+            MapMember();
+            MapSession();
+            MapPlan();
+
+        }
+        private void MapMember()
+        {
             CreateMap<Member, MemberViewModel>().
-                ForMember(des => des.Address,opt => opt.MapFrom(src => $"{src.Address.BuildingNumber} - {src.Address.Street} - {src.Address.City}")).
-                ForMember(des => des.DateOfBirth,opt => opt.MapFrom(src => src.DateOfBirth.ToShortDateString()));
+              ForMember(des => des.Address, opt => opt.MapFrom(src => $"{src.Address.BuildingNumber} - {src.Address.Street} - {src.Address.City}")).
+              ForMember(des => des.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToShortDateString()));
             CreateMap<HealthRecord, HealthRecordViewModel>();
             CreateMap<Member, MemberToUpdateViewModel>()
                 .ForMember(des => des.BuildingNumber, opt => opt.MapFrom(src => src.Address.BuildingNumber))
@@ -25,7 +33,7 @@ namespace GymMangment.BLL
             CreateMap<MemberToUpdateViewModel, Member>()
                 .ForMember(des => des.Name, opt => opt.Ignore())
                 .ForMember(des => des.Phone, opt => opt.Ignore())
-                .AfterMap((src,dest) => 
+                .AfterMap((src, dest) =>
                 {
                     dest.Address.Street = src.Street;
                     dest.Address.City = src.City;
@@ -39,11 +47,21 @@ namespace GymMangment.BLL
                     City = src.City,
                 }))
                 .ForMember(des => des.HealthRecord, opt => opt.MapFrom(src => src.HealthRecordViewModel));
+        }
 
+        private void MapSession()
+        {
+            CreateMap<CreateSessionViewModel, Session>();
+            CreateMap<Session, SessionViewModel>();
+            CreateMap<Trainer, TrainerSelectViewModel>();
+            CreateMap<Catagory,CatagorySelectViewModel>();
+        }
+
+        private void MapPlan()
+        {
             CreateMap<Plan, PlanViewModel>();
             CreateMap<Plan, EditPlanViewModel>();
             CreateMap<EditPlanViewModel, Plan>();
-
         }
     }
 }
