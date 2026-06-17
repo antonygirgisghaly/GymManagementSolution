@@ -37,14 +37,14 @@ namespace GymMangement.PL.Controllers
                 return View(model);
             }
             var result = await _sessionService.CreateSessionAsync(model, ct);
-            if (result)
+            if (result.success)
             {
                 TempData["SuccessMessage"] = "Session_Created";
                 return RedirectToAction(nameof(Index));
             }
             else
             {
-                TempData["ErrorMessage"] = "Session Failed To Create";
+                TempData["ErrorMessage"] = result.error;
                 await PopulateDownListAsync();
                 return View(model);
             }
