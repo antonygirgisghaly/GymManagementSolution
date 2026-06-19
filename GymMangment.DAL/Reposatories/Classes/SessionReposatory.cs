@@ -27,5 +27,12 @@ namespace GymMangment.DAL.Reposatories.Classes
         {
             return await _dbContext.Bookings.AsNoTracking().CountAsync(b => b.SessionId == sessionid);
         }
+
+        public async Task<Session?> GetSessionWithTrainerandCatagoryByIdAsync(int id, CancellationToken ct = default)
+        {
+            var query = await _dbContext.Sessions.AsNoTracking().Include(p => p.Trainer).Include(s => s.Catagory).FirstOrDefaultAsync(c => c.Id == id);
+            return query;
+
+        }
     }
 }

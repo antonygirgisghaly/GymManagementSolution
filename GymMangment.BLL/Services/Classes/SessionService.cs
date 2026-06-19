@@ -47,6 +47,21 @@ namespace GymMangment.BLL.Services.Classes
             return result > 0 ? Result.Ok() : Result.NotFound("Failed to create session");
         }
 
+public async Task<Result> DeleteSessionAsync(int id, CancellationToken ct = default)
+{
+                var session = await _unitOfWork.SessionReposatory.GetByIdAsync(id, ct);
+                if (session == null) return Result.NotFound("Session not found");
+            
+                if (session.StartDate <= DateTime.Now) return Result.Fail("Can not delete session started");
+            
+                var bookingCount = await _unitOfWork.SessionReposatory.GetCountOfBookedSlotAsync(id, ct);
+                if (bookingCount > 0) return Result.Fail("Can not delete session that already has bookings");
+            
+                _unitOfWork.SessionReposatory.Delete(session);
+                var result = await _unitOfWork.SaveChangesAsync(ct);
+                return result > 0 ? Result.Ok() : Result.Fail("Failed to delete session");
+  }
+
         public async Task<IEnumerable<SessionViewModel>> GetAllSessionsAsync(CancellationToken ct = default)
         {
             var result = await _unitOfWork.SessionReposatory.GetAllSessionsWithTrainerandCatagoryAsync(ct);
@@ -65,10 +80,61 @@ namespace GymMangment.BLL.Services.Classes
             return _mapper.Map<IEnumerable<CatagorySelectViewModel>>(result);
         }
 
+        public async Task<Result<SessionViewModel?>> GetSessionByIdAsync(int id, CancellationToken ct = default)
+        {
+            var session = await _unitOfWork.SessionReposatory.GetSessionWithTrainerandCatagoryByIdAsync(id,ct);
+            if (session == null) return Result<SessionViewModel?>.NotFound("Session not found");
+            var result = _mapper.Map<Session,SessionViewModel>(session);
+            result.AvailableSlots = result.Capacity - await _unitOfWork.SessionReposatory.GetCountOfBookedSlotAsync(id, ct);
+            return Result<SessionViewModel?>.Ok(result);
+        }
+
+        public async Task<Result<SessionToUpdateViewModel>> GetSessionToUpdateAsync(int id, CancellationToken ct = default)
+        {
+            var session = await _unitOfWork.SessionReposatory.GetByIdAsync(id, ct);
+            if (session == null) return Result<SessionToUpdateViewModel>.NotFound("Session not found");
+            if (session.StartDate <= DateTime.Now) return Result<SessionToUpdateViewModel>.Fail("Can not update session stared");
+            var bookingCount = await _unitOfWork.SessionReposatory.GetCountOfBookedSlotAsync(id,ct);
+            if (bookingCount > 0) return Result<SessionToUpdateViewModel>.Fail("Can not Update Session that Already has bookings");
+            var map = _mapper.Map<Session,SessionToUpdateViewModel>(session);
+            return Result<SessionToUpdateViewModel>.Ok(map);
+        }
+
         public async Task<IEnumerable<TrainerSelectViewModel>> GetTrainersForDropDownAsync(CancellationToken ct = default)
         {
             var result = await _unitOfWork.GetReposatory<Trainer>().GetAllAsync(ct: ct);
             return _mapper.Map<IEnumerable<TrainerSelectViewModel>>(result);
+        }
+
+        public async Task<Result> UpdateSessionAsync(int id, SessionToUpdateViewModel session, CancellationToken ct = default)
+        {
+            var update = await _unitOfWork.SessionReposatory.GetByIdAsync(id, ct);
+            if (update == null) return Result.NotFound("Session not found");
+
+            if (update.StartDate <= DateTime.Now) return Result.Fail("Can not update session stared");
+
+            if (session.EndDate <= DateTime.Now) return Result.Fail("End Date can not be after start date");
+
+            var bookingCount = await _unitOfWork.SessionReposatory.GetCountOfBookedSlotAsync(id, ct);
+            if (bookingCount > 0) return Result.Fail("Can not Update Session that Already has bookings");
+
+            if (session.StartDate <= DateTime.Now) return Result.Fail("Start date must be in the future");
+
+            var trainer = await _unitOfWork.GetReposatory<Trainer>().GetByIdAsync(update.TrainerId);
+            if(trainer == null) return Result.NotFound("Trainer not found");
+
+            var catagory = await _unitOfWork.GetReposatory<Catagory>().GetByIdAsync(update.CatagoryId);
+
+            var isVaild = Enum.TryParse<Specialty>(catagory?.CatagoryName, true, out var specialty);
+            if (!isVaild || trainer.Specialty != specialty) return Result.Validation("Can not create this session to this trainer");
+
+            _mapper.Map(session, update);
+            update.UpdatedAt = DateTime.Now;
+            _unitOfWork.SessionReposatory.Update(update);
+            var result = await _unitOfWork.SaveChangesAsync(ct);
+
+            return result > 0 ? Result.Ok() : Result.Fail("Session fail to create");
+
         }
     }
 }

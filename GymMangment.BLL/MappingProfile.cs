@@ -55,6 +55,7 @@ namespace GymMangment.BLL
             CreateMap<Session, SessionViewModel>();
             CreateMap<Trainer, TrainerSelectViewModel>();
             CreateMap<Catagory,CatagorySelectViewModel>();
+            CreateMap<Session,SessionToUpdateViewModel>().ReverseMap();
         }
 
         private void MapPlan()
