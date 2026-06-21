@@ -18,5 +18,6 @@ namespace GymMangment.DAL.Reposatories.Interfaces
         public void Delete(TEntity entity);
         public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> expression, CancellationToken ct = default);
         public Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> expression,bool tracking = false, CancellationToken ct = default);
+        public Task<int> CountAsync(Expression<Func<TEntity,bool>>?expression = null,CancellationToken ct = default);
     }
 }

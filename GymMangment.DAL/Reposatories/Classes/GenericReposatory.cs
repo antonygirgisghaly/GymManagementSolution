@@ -32,6 +32,13 @@ namespace GymMangment.DAL.Reposatories.Classes
             return _set.AsNoTracking().AnyAsync(expression, ct);
         }
 
+        public async Task<int> CountAsync(Expression<Func<TEntity, bool>> expression,CancellationToken ct = default)
+        {
+            if (expression == null)
+                return await _set.AsNoTracking().CountAsync(ct);
+            return await _set.AsNoTracking().CountAsync(expression,ct);
+        }
+
         public void Delete(TEntity entity)
         {
             _set.Remove(entity);
