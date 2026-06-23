@@ -25,7 +25,7 @@ namespace GymMangment.BLL
             CreateMap<Member, MemberViewModel>().
               ForMember(des => des.Address, opt => opt.MapFrom(src => $"{src.Address.BuildingNumber} - {src.Address.Street} - {src.Address.City}")).
               ForMember(des => des.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth.ToShortDateString()));
-            CreateMap<HealthRecord, HealthRecordViewModel>();
+            CreateMap<HealthRecord, HealthRecordViewModel>().ReverseMap();
             CreateMap<Member, MemberToUpdateViewModel>()
                 .ForMember(des => des.BuildingNumber, opt => opt.MapFrom(src => src.Address.BuildingNumber))
                 .ForMember(des => des.Street, opt => opt.MapFrom(src => src.Address.Street))
@@ -46,7 +46,8 @@ namespace GymMangment.BLL
                     Street = src.Street,
                     City = src.City,
                 }))
-                .ForMember(des => des.HealthRecord, opt => opt.MapFrom(src => src.HealthRecordViewModel));
+                .ForMember(des => des.HealthRecord, opt => opt.MapFrom(src => src.HealthRecordViewModel))
+                .ForMember(d => d.Photo,opt => opt.Ignore()); 
         }
 
         private void MapSession()

@@ -1,4 +1,5 @@
 using GymMangment.BLL;
+using GymMangment.BLL.Services.AttachmentServices;
 using GymMangment.BLL.Services.Classes;
 using GymMangment.BLL.Services.Interfaces;
 using GymMangment.DAL.Data.DbContexts;
@@ -25,6 +26,7 @@ namespace GymMangement
             builder.Services.AddScoped<ISessionReposatory, SessionReposatory>();
             builder.Services.AddScoped<ISessionService, SessionService>();
             builder.Services.AddScoped<IAnaltyicService, AnalyticService>();
+            builder.Services.AddScoped<IAttachmentService, AttachmentService>();
             builder.Services.AddAutoMapper(m => m.AddProfile(new MappingProfile()));
             builder.Services.AddDbContext<GymDbContext>(options =>
                 {
