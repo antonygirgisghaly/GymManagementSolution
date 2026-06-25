@@ -1,14 +1,16 @@
 ﻿using GymMangment.BLL.Services.Interfaces;
-using GymMangment.DAL.Data.DbContexts;
-using GymMangment.DAL.Data.Models;
 using GymMangment.BLL.Services.Interfaces;
 using GymMangment.BLL.ViewModels.PlanViewModel;
+using GymMangment.DAL.Data.DbContexts;
+using GymMangment.DAL.Data.Models;
 using GymMangment.DAL.Reposatories.Classes;
 using GymMangment.DAL.Reposatories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace GymMangment.PL.Controllers
 {
+    [Authorize]
     public class PlansController : Controller
     {
         private readonly IPlanService _planService;
