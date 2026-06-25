@@ -1,5 +1,7 @@
 ﻿using GymMangment.DAL.Data.DataSeeding;
 using GymMangment.DAL.Data.DbContexts;
+using GymMangment.DAL.Data.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +23,10 @@ namespace GymMangement.PL
             }
             var seedFolderPath = Path.Combine(app.Environment.ContentRootPath,"wwroot","Files");
             await GymDataSeeding.SeedAsync(dbContext, seedFolderPath, logger);
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var identityLogger = scope.ServiceProvider.GetRequiredService<ILogger<IdentityDataSeeding>>();
+            await IdentityDataSeeding.SeedIdentityDataAsync(roleManager, userManager, identityLogger);
         }
     }
 }
