@@ -48,8 +48,7 @@ namespace GymMangment.DAL.Data.DataSeeding
             var filePath = Path.Combine(folderPath, fileName);
 
             if (!File.Exists(filePath))
-                throw new FileNotFoundException(
-                    $"Seed Data File Not Found : {filePath}");
+                return new List<T>();
 
             var data = File.ReadAllText(filePath);
 
